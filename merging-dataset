@@ -1,0 +1,22 @@
+#it's only an example of combining data
+#I assumed that there was a dataset stroing participants' information and another dataset storing cognitive test results
+#Here I want to combine them together on "ID", inluding missing data in the right dataset using "leftmerge"
+
+ 
+
+import numpy as np
+import pandas as pd
+import os
+
+cd = '/Users/anna/Desktop/testanything/'
+
+infile1 = 'Book1.xlsx'
+infile2 = 'Book2.xlsx'
+
+id_data = pd.read_excel(infile1, 'Sheet1', index_col= None, na_values=['NA'])
+test_data = pd.read_excel(infile2, 'Sheet1', index_col= None, na_values=['NA'])
+
+test = pd.merge(id_data,
+                 test_data,
+                 on='id', 
+                 how='left')
