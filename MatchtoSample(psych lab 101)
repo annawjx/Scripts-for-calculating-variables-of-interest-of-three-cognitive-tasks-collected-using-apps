@@ -1,0 +1,63 @@
+import numpy as np
+import pandas as pd
+#add path
+cd = '/Users/anna/Desktop/MTS_data_baseline/'
+
+#get filenames
+import os
+path = '/Users/anna/Desktop/MTS_data_baseline/'
+folder = os.fsencode(path)
+filenames = []
+for file in os.listdir(folder):
+    filename = os.fsdecode(file)
+    if filename.endswith( ('.txt') ):
+        filenames.append(filename)
+       
+#get ID
+results = pd.DataFrame(columns = ['txt', 'ID', 'MeanRT', 'Mean5000RT', 'Mean1000RT', 'RT_variability','MeanRT_correct', 'MeanRT_incorrect', 'ACC','ACC_5000','ACC_1000', 'hit/all_response', 'non-responses_rate', 'mean_5000_RT', 'mean_1000_RT'])        
+results['txt'] = pd.Series(filenames)
+results['ID'] = results['txt'].astype(str).str[0:5]
+
+# loop through all files (will calculate %, RT, etc)
+for i in range(0,253):
+    infile = filenames[i]
+    df0= pd.read_csv(infile, sep='[\t]+')
+    #exclude practice 
+    df = df0[3:35]
+    #ACC_5000
+    df_5000 = df[df['Delay']==5000]
+    results['mean_5000_RT'][i] = df_5000['RT'].mean(axis=0) 
+    results['ACC_5000'][i] = (df_5000[df_5000['Accuracy']=='rm_hit']['RT'].count())/16
+    meanRT_5000 = df_5000['RT'].mean(axis=0)
+    results['Mean5000RT'][i] = meanRT_5000
+    #ACC_1000
+    df_1000 = df[df['Delay']==1000]
+    results['mean_1000_RT'][i] = df_1000['RT'].mean(axis=0)
+    results['ACC_1000'][i] = (df_1000[df_1000['Accuracy']=='rm_hit']['RT'].count())/16
+    meanRT_1000 = df_1000['RT'].mean(axis=0)
+    results['Mean1000RT'][i] = meanRT_1000
+    #mean overall RT
+    results['MeanRT'][i] = df['RT'].mean(axis=0)
+    #RT_variability
+    results['RT_variability'][i] = df['RT'].std(axis=0)
+    #correct dataset
+    df1 = df[df['Accuracy']=='rm_hit']
+    results['MeanRT_correct'][i] = df1['RT'].mean(axis=0)
+    #incorrect RT
+    df2 = df[df['Accuracy']=='rm_incorrect']
+    results['MeanRT_incorrect'][i] = df2['RT'].mean(axis=0)
+    #ACC = hit/32
+    num_hit = df1['RT'].count()
+    ACC = num_hit/32
+    results['ACC'][i] = ACC
+    #hit/all_response all trials with responses, != rm_miss
+    hit_num = df1['Accuracy'].count()
+    incor_num = df2['Accuracy'].count()
+    hitper = hit_num/(hit_num + incor_num)
+    results['hit/all_response'][i] = hitper
+    #non-response rate
+    non_res = (32 - (hit_num + incor_num))/32
+    results['non-responses_rate'][i] = non_res 
+    
+#export data
+results.to_csv('MTS_results.csv')
