@@ -1,0 +1,74 @@
+import numpy as np
+import pandas as pd
+import os
+path = '/Users/anna/Desktop/S2P_data_baseline/andriod_data'
+folder = os.fsencode(path)
+filenames = []
+for file in os.listdir(folder):
+    filename = os.fsdecode(file)
+    if filename.endswith( ('.csv') ):
+        filenames.append(filename)
+        
+results = pd.DataFrame(columns = ['csv', 'ID', 'meanRT', 'lapse', 'validtrials', 'falsestarts', 'meanRRT','fast10perRT', 'slow10perRRT'])
+results['csv'] = pd.Series(filenames)
+results['ID'] = results['csv'].astype(str).str[0:5]
+
+#RRT function
+def RRT(x):
+    return 1/(x/1000)
+
+for i in range(0,10):
+    infile = filenames[i]
+    #read and seperate by ;
+    data1 = pd.read_csv(infile)
+    data2 = data1.iloc[0,11:29].copy()
+    #convert object to float
+    data2 = data2.convert_objects(convert_numeric=True)
+    
+    #calculate mean RT 
+    results['meanRT'][i] = data2[(data2<=500)&(data2>100)].mean()
+    
+    #calculate lapse
+    results['lapse'][i] = data2[data2>500].count()
+    
+    #calculate valid trials
+    results['validtrials'][i] = data2[(data2<=500)&(data2>100)].count()
+    
+    #calculate false starts
+    results['falsestarts'][i] = data2[data2<=100].count()
+    
+    #RRT all trials
+    RRTdata = RRT(data2)
+    
+    #meanRRT
+    validata = data2[(data2<=500)&(data2>100)]
+    results['meanRRT'][i] = RRT(validata).mean()
+    
+    # get fastest 10% RT
+    data_t = pd.DataFrame(columns = ['RT','validtrial'])
+    data_t['RT'] = data2[(data2<= 500)&(data2>100)]
+    data_t['validtrial'] = data2[(data2<=500)&(data2>100)].count()
+    
+    if data_t['validtrial'].mean() < 15:
+        results['fast10perRT'][i] = data_t['RT'].min() 
+    elif data_t['validtrial'].mean() >= 15:
+        gv = data_t['RT'].values 
+        gv2 = np.sort(gv)
+        min2 = (gv2[0] + gv2[1])/2
+        results['fast10perRT'][i] = min2
+ 
+    # get slowest 10% RRT
+    data_rrt = pd.DataFrame(columns = ['RRT','validtrial'])
+    data_rrt['validtrial'] = data_t['validtrial']
+    data_rrt['RRT'] = RRT(data2[(data2<=500)&(data2>100)])
+    
+    if data_rrt['validtrial'].mean() < 15:
+        results['slow10perRRT'][i] = data_rrt['RRT'].min()
+    elif data_rrt['validtrial'].mean() >= 15:
+        rrtv =  data_rrt['RRT'].values
+        rrt = np.sort(rrtv)
+        rrt2 = (rrt[0]+rrt[1])/2
+        results['slow10perRRT'][i] = rrt2
+
+#export data
+results_to_csv('results_Android.csv')
