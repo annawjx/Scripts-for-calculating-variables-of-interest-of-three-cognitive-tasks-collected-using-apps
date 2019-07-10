@@ -1,0 +1,53 @@
+@author: anna
+"""
+#add scripts for analyzing data for Go Nogo test in psych lab 101 app
+
+import numpy as np
+import pandas as pd
+cd = '/Users/anna/Desktop/T2/data/GNG' #add path
+
+#get filenames
+import os
+path = '/Users/anna/Desktop/T2/data/GNG'
+folder = os.fsencode(path)
+filenames = []
+for file in os.listdir(folder):
+    filename = os.fsdecode(file)
+    if filename.endswith( ('.txt') ):
+        filenames.append(filename)
+
+#get ID
+results = pd.DataFrame(columns = ['txt', 'ID', 'Mean_GO_RT', 'Mean_NOGO_RT', 'hitrate', 'falsealarmrate','NoGo_ACC','hitRT'])        
+results['txt'] = pd.Series(filenames)
+results['ID'] = results['txt'].astype(str).str[0:5]
+
+# loop through all files (will calculate %, RT, etc)
+for i in range(0,182):
+    infile = filenames[i]
+    df0= pd.read_csv(infile, sep='[\t]+')
+    #exclude practice 
+    df = df0[5:77]
+    #go dataset 
+    df1 = df[df['Condition']=='Go']
+    #nogo dataset
+    df2 = df[df['Condition']=='NoGo']
+    #mean RT of go trials
+    meanGORT = df1['RT'].mean(axis=0)
+    results['Mean_GO_RT'][i] = meanGORT
+    #mean RT of nogo trials
+    mean_NOGO_RT = df2['RT'].mean(axis=0)
+    results['Mean_NOGO_RT'][i] = mean_NOGO_RT
+    #hitrate
+    df_hit = df[df['Accuracy']=='rm_hit']
+    hitrate = (df_hit['Accuracy'].count()/48)
+    results['hitrate'][i] = hitrate
+    hitRT = df_hit['RT'].mean(axis=0)
+    results['hitRT'][i] = hitRT
+    #false alarm rate
+    df_falsealarm = df[df['Accuracy']=='rm_false_alarm']
+    false_alarmrate = (df_falsealarm['Accuracy'].count())/24
+    results['falsealarmrate'][i] = false_alarmrate
+    NoGo_ACC = 1-false_alarmrate 
+    results['NoGo_ACC'][i] = NoGo_ACC
+    
+results.to_csv('GNG_T2.csv')
