@@ -4,11 +4,11 @@
 
 import numpy as np
 import pandas as pd
-cd = '/Users/anna/Desktop/T2/data/GNG' #add path
+
 
 #get filenames
 import os
-path = '/Users/anna/Desktop/T2/data/GNG'
+path = '/Users/anna/Desktop/T2/data/GNG' #add path
 folder = os.fsencode(path)
 filenames = []
 for file in os.listdir(folder):
