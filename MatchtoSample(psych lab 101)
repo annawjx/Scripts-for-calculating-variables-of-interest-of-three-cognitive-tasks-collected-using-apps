@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
-#add path
-cd = '/Users/anna/Desktop/MTS_data_baseline/'
+
+
 
 #get filenames
 import os
-path = '/Users/anna/Desktop/MTS_data_baseline/'
+path = '/Users/anna/Desktop/MTS_data_baseline/' #add path
 folder = os.fsencode(path)
 filenames = []
 for file in os.listdir(folder):
